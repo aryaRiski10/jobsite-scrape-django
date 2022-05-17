@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{keyword}} - jobs</title>
+
+    {% include "snippets/style.html" %}
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+
+</head>
+<body>
+    {% include "snippets/nav.html" %}
+    <div class="container">
+        <div class="row">
+                <div class="content">
+                    <div class="main-content">
+                        {% include "snippets/filter_search.html" %}
+                        <hr>
+                        {% if keyword or keywordTitle or keywordLocation %}
+                        <div class="row">
+                            <div class="col-3">
+                                {% block content-jobs-filterDate%}
+                                {% endblock content-jobs-filterDate%}
+                            </div>
+
+                            {% if keyword %}
+                                <div class="col-9">
+                                    {% block content-jobs-result1 %}
+                                    
+                                    {% endblock content-jobs-result1 %}
+                                </div>
+
+                            {% elif keywordTitle or keywordLocation%}
+                                <div class="col-9">
+                                    {% block content-jobs-result2 %}
+                                    {% endblock content-jobs-result2%}
+                                </div>
+                            {% else %}
+                                <h1>The job you were looking for was not found...</h1>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                            <h1>The job you were looking for was not found...</h1>
+                        {% endif %}
+
+                    </div>
+                </div>   
+        </div>
+    </div>
+
+    {% block script-ajax%}
+    {% endblock script-ajax%}
+    {% include "snippets/scripts.html" %}
+
+    {% comment %} <scripts>
+        $(document).ready(function() {
+
+        }};
+    </scripts> {% endcomment %}
+</body>
+</html>

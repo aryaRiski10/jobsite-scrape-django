@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% load template_cut_re %}
+
+{% block content-jobs-result1%}
+<h4 class="job-header mt-4">{{jobs_count}} Jobs Searching For {{keyword|title}}</h4>
+<br>
+<div class="row">
+    <span>{{jobslist}}</span>
+    {% for job in jobs %}
+        <div class="col-12 card-border">
+            <div class="card mb-3"> 
+                <div class="row d-flex">
+                    <div class="card-header d-flex">
+                        <div class="img-company">
+                            <img src="#" id="job_image" class="img-fluid company-image " alt="...">
+                        </div>
+                        <div class="card-header-info">
+                            <a class="text-decoration-none job-name" href="#" data-bs-toggle="modal" data-bs-target="#detailModel-{{forloop.counter}}">
+                                <h3 class="card-title job-name" id="job_title">{{job.title|title}}</h3>
+                            </a>
+                            <span class="card-company company-name" id="job_company" style="font-size:14px;"></span>
+                        </div>
+                        {% if job.datetime_posted >= last_3_day %}
+                            <div class="banner-update bg-warning">
+                                <div class="banner-update-posted">
+                                    <span class="update-job">Up-to-date</span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="visually-hidden">
+                                <span class="update-job visually-hidden">None</span>
+                            </div>
+                        {% endif %}
+            
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card-body">
+                            <div class="location-info">
+                                <div class="loc">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <span class="location-name fw-bold" id="job_location"></span>
+                                </div>
+                            </div>
+                            <div class="requirement-info">
+                                <h6 class="card-text mb-1 mt-3">Details :</h6>
+                                <p class="card-text requirements-job" style="word-wrap:break-word;" id="job_requirement">{{job.requirement|slice:":200"|linebreaks }}... <a href="" data-bs-toggle="modal" data-bs-target="#detailModel-{{forloop.counter}}">more</a> </p>
+                            </div>
+                            <div class="card-footer mt-3">
+                                <p class="card-text d-inline-block job-datetime-posted">
+                                    <small class="text-muted datetime-posted" id="job_datetime_posted">Posted <time datetime="{{job.datetime_posted}}">
+                                        {{job.datetime_posted}} by {{job.link|template_cut_re:"https://www."|template_cut_re:"(.co.id|.com)(.*)"|capfirst}}
+                                    </small>
+                                </p>
+                                <div class="apply-job d-inline-block">
+                                    <a href="#" id="job_link" class="btn btn-primary" target="_blank">Apply</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% comment %} Modal for show the detail {% endcomment %}
+                    <!-- Modal -->
+                    <div class="modal fade" id="detailModel-{{ forloop.counter }}" tabindex="-1" aria-labelledby="detailModel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3 class="modal-title" id="exampleModalTitle">{{job.title}}</h3>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="img-company img-company-modal">
+                                        <img src="#" id="job_image" class="img-fluid company-image" alt="...">
+                                    </div>
+                                    <div class="company-name-modal text-center mt-3">
+                                        <span class="company-name" id="job_company"></span>
+                                    </div>
+                                    <div class="location-name-modal text-center mt-2">
+                                        <span class="location-name text-muted" id="job_location"></span>
+                                    </div>
+                                    <div class="requirement-info-modal mt-4">
+                                        <h5 class="requirement-info text-decoration-underline">Details</h5>
+                                        <span class="requirement-info">{{job.requirement|linebreaksbr}}</span>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <p class="card-text d-inline-block job-datetime-posted-modal">
+                                        <small class="text-muted datetime-posted">Posted <time datetime="{{job.datetime_posted}}">
+                                            {{job.datetime_posted}} by {{job.link|template_cut_re:"https://www."|template_cut_re:"(.co.id|.com)(.*)"|capfirst}}
+                                        </small>
+                                    </p>
+                                    <div class="apply-job d-inline-block">
+                                        <a href="#" id="job_link" class="btn btn-success" target="_blank">Apply Now</a>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<div class="pagination justify-content-center">
+    <div class="row">
+        <div class="col-6">
+            <nav class="pagination-nav" aria-label="pagination-nav">
+                {% if jobs.has_other_pages %}
+                    <ul class="pagination">
+                            <li class="page-item">
+                                {% if jobs.has_previous %}
+                                    <a class="page-link" href="?page={{ jobs.previous_page_number }} {% if request.GET.keyword %}&keyword={{request.GET.keyword}} {% endif %}" title="">Previous</a>
+                                {% else %}
+                                    <span class="page-link disabled">Previous</span>
+                                {% endif %}
+                            </li>
+                            <li class="page-item d-flex">
+                                {% for i in jobs.paginator.page_range %}
+                                    {% if jobs.number == i %}
+                                        <a class="page-link" href="#!">{{i}}</a>
+                                    {% else %}
+                                        <a class="page-link" href="?page={{ i }} {% if request.GET.keyword %}&keyword={{request.GET.keyword}} {% endif %}">{{i}}</a>
+                                    {% endif %}
+                                {% endfor %}
+                            </li>          
+                            <li class="page-item">
+                                {% if jobs.has_next %}
+                                    <a class="page-link" href="?page={{ jobs.next_page_number }} {% if request.GET.keyword %}&keyword={{request.GET.keyword}} {% endif %}" title="#">Next</a>
+                                {% else %}
+                                    <span class="page-link disabled">Next</span>
+                                {% endif %}
+                            </li>
+                    </ul>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+{% endblock content-jobs-result1 %}
+
+
+{% block content-jobs-result2 %}
+<h4 class="job-header mt-4">{{jobs_count}} Jobs Searching For {{keywordTitle|title}} {{keywordLocation|title}}</h4>
+<br>
+<div class="row">
+    {% comment %} {% for job in jobs %}
+        <div class="col-12 card-border">
+            <div class="card mb-3"> 
+                <div class="row d-flex">
+                    <div class="card-header d-flex">
+                        <div class="img-company">
+                            <img src="#" id="job_image" class="img-fluid company-image " alt="...">
+                        </div>
+                        <div class="card-header-info">
+                            <a class="text-decoration-none job-name" href="#" data-bs-toggle="modal" data-bs-target="#detailModel-{{forloop.counter}}"><h3 class="card-title job-name">{{job.title|title}}</h3></a>
+                            <span class="card-company company-name" id="job_company" style="font-size:14px;"></span>
+                        </div>
+                        {% if job.datetime_posted <= last_3_day %}
+                        <div class="banner-update bg-warning">
+                            <div class="banner-update-posted">
+                                <span class="update-job">Up-to-date</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="visually-hidden">
+                            <span class="update-job visually-hidden">None</span>
+                        </div>
+                        {% endif %}
+            
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card-body">
+                            <div class="location-info">
+                                <div class="loc">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <span class="location-name fw-bold" id="job_location"></span>
+                                </div>
+                            </div>
+                            <div class="requirement-info">
+                                <h6 class="card-text mb-1 mt-3">Details :</h6>
+                                <p class="card-text requirements-job" style="word-wrap:break-word;">{{job.requirement|slice:":200"|linebreaks }}... <a href="" data-bs-toggle="modal" data-bs-target="#detailModel-{{forloop.counter}}">more</a> </p>
+                            </div>
+                            <div class="card-footer mt-3">
+                                <p class="card-text d-inline-block job-datetime-posted">
+                                    <small class="text-muted datetime-posted">Posted <time datetime="{{job.datetime_posted}}">
+                                        {{job.datetime_posted}} by {{job.link|template_cut_re:"https://www."|template_cut_re:"(.co.id|.com)(.*)"|capfirst}}
+                                    </small>
+                                </p>
+                                <div class="apply-job d-inline-block">
+                                    <a href="#" id="job_link" class="btn btn-primary" target="_blank">Apply</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--- Modal for show the detail -->
+                    <!-- Modal -->
+                    <div class="modal fade" id="detailModel-{{ forloop.counter }}" tabindex="-1" aria-labelledby="detailModel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3 class="modal-title" id="exampleModalTitle">{{job.title}}</h3>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="img-company img-company-modal">
+                                        <img src="#" id="job_image" class="img-fluid company-image" alt="...">
+                                    </div>
+                                    <div class="company-name-modal text-center mt-3">
+                                        <span class="company-name" id="job_company"></span>
+                                    </div>
+                                    <div class="location-name-modal text-center mt-2">
+                                        <span class="location-name text-muted" id="job_location"></span>
+                                    </div>
+                                    <div class="requirement-info-modal mt-4">
+                                        <h5 class="requirement-info text-decoration-underline">Details</h5>
+                                        <span class="requirement-info">{{job.requirement|linebreaksbr}}</span>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <p class="card-text d-inline-block job-datetime-posted-modal">
+                                        <small class="text-muted datetime-posted">Posted <time datetime="{{job.datetime_posted}}">
+                                            {{job.datetime_posted}} by {{job.link|template_cut_re:"https://www."|template_cut_re:"(.co.id|.com)(.*)"|capfirst}}
+                                        </small>
+                                    </p>
+                                    <div class="apply-job d-inline-block">
+                                        <a href="#" id="job_link" class="btn btn-success" target="_blank">Apply Now</a>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %} {% endcomment %}
+
+<!-- tes yoha -->
+
+<template>
+    <div class="col-12 card-border">
+        <div class="card mb-3">
+            <div class="row d-flex">
+                <div class="card-header d-flex">
+                    <div class="img-company">
+                        <img id="job_image" class="img-fluid company-image " alt="...">
+                    </div>
+                    <div class="card-header-info">
+                        <a class="text-decoration-none job-name" href="#" data-bs-toggle="modal" id="job_modal_counter">
+                            <h3 class="card-title job-name" id="job_title"></h3>
+                        </a>
+                        <span class="card-company company-name" style="font-size:14px;" id="job_company"></span>
+                        <span id="job.datetime_posted">{{job.datetime_posted|date:"D d M Y"}}</span>
+                    </div>
+                    {% if job.datetime_posted <= last_3_day %}
+                    <div class="banner-update bg-warning">
+                        <div class="banner-update-posted">
+                            <span class="update-job">Up-to-date</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="visually-hidden">
+                        <span class="update-job visually-hidden">None</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-12">
+                    <div class="card-body">
+                        <div class="location-info">
+                            <div class="loc">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <span class="location-name fw-bold" id="job_location"></span>
+                            </div>
+                        </div>
+                        <div class="requirement-info">
+                            <h6 class="card-text mb-1 mt-3">Details :</h6>
+                            <p class="card-text requirements-job" style="word-wrap:break-word;">{{job.requirement|slice:":200"|linebreaks }}... <a href="" data-bs-toggle="modal" data-bs-target="#detailModel-{{forloop.counter}}">more</a> </p>
+                        </div>
+                        <div class="card-footer mt-3">
+                            <p class="card-text d-inline-block job-datetime-posted">
+                                <small class="text-muted datetime-posted">Posted <time datetime="{{job.datetime_posted}}">
+                                    {{job.datetime_posted}} by {{job.link|template_cut_re:"https://www."|template_cut_re:"(.co.id|.com)(.*)"|capfirst}}
+                                </small>
+                            </p>
+                            <div class="apply-job d-inline-block">
+                                <a href="#" id="job_link" class="btn btn-primary" target="_blank">Apply</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal -->
+                <div class="modal fade" id="detailModel-{{ forloop.counter }}" tabindex="-1" aria-labelledby="detailModel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="modal-title" id="exampleModalTitle">{{job.title}}</h3>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="img-company img-company-modal">
+                                    <img src="#" id="job_image" class="img-fluid company-image" alt="...">
+                                </div>
+                                <div class="company-name-modal text-center mt-3">
+                                    <span class="company-name" id="job_company"></span>
+                                </div>
+                                <div class="location-name-modal text-center mt-2">
+                                    <span class="location-name text-muted" id="job_location"></span>
+                                </div>
+                                <div class="requirement-info-modal mt-4">
+                                    <h5 class="requirement-info text-decoration-underline">Details</h5>
+                                    <span class="requirement-info">{{job.requirement|linebreaksbr}}</span>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <p class="card-text d-inline-block job-datetime-posted-modal">
+                                    <small class="text-muted datetime-posted">Posted <time datetime="{{job.datetime_posted}}">
+                                        {{job.datetime_posted}} by {{job.link|template_cut_re:"https://www."|template_cut_re:"(.co.id|.com)(.*)"|capfirst}}
+                                    </small>
+                                </p>
+                                <div class="apply-job d-inline-block">
+                                    <a href="#" id="job_link" class="btn btn-success" target="_blank">Apply Now</a>
+                                </div>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+<script>
+
+</script>
+
+<!-- end test yoha -->
+</div>
+<div class="pagination justify-content-center">
+    <div class="row">
+        <div class="col-6">
+            <nav class="pagination-nav" aria-label="pagination-nav">
+                {% if jobs.has_other_pages %}
+                    <ul class="pagination">
+                            <li class="page-item">
+                                {% if jobs.has_previous %}
+                                    <a class="page-link" href="?page={{ jobs.previous_page_number }} {% if request.GET.keywordTitle or request.GET.keywordLocation %}&keywordTitle={{request.GET.keywordTitle}}&keywordLocation={{request.GET.keywordLocation}} {% endif %}" title="">Previous</a>
+                                {% else %}
+                                    <span class="page-link disabled">Previous</span>
+                                {% endif %}
+                            </li>
+                            <li class="page-item d-flex">
+                                {% for i in jobs.paginator.page_range %}
+                                    {% if jobs.number == i %}
+                                        <a class="page-link" href="#!">{{i}}</a>
+                                    {% else %}
+                                        <a class="page-link" href="?page={{ i }} {% if request.GET.keywordTitle or request.GET.keywordLocation %}&keywordTitle={{request.GET.keywordTitle}}&keywordLocation={{request.GET.keywordLocation}} {% endif %}">{{i}}</a>
+                                    {% endif %}
+                                {% endfor %}
+                            </li>          
+                            <li class="page-item">
+                                {% if jobs.has_next %}
+                                    <a class="page-link" href="?page={{ jobs.next_page_number }} {% if request.GET.keywordTitle or request.GET.keywordLocation %}&keywordTitle={{request.GET.keywordTitle}}&keywordLocation={{request.GET.keywordLocation}} {% endif %}" title="#">Next</a>
+                                {% else %}
+                                    <span class="page-link disabled">Next</span>
+                                {% endif %}
+                            </li>
+                    </ul>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock content-jobs-result2 %}
+
+{% block content-jobs-filterDate%}
+<div class="date date-filter input-group">
+    <form action="#" method="get">
+        <h5><i class="bi bi-calendar me-2"></i>Date Filter </h5>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="inputGroup-sizing-lg">From</span><input class="form-control" type="date" name="dateFrom">
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="inputGroup-sizing-lg">To</span><input class="form-control" type="date" name="dateTo">
+        </div>
+        <button type="submit" class="btn btn-primary btn-dateFilter">Filter</button>
+    </form>
+    <div class="filter-lastDay">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+            <label class="form-check-label" for="flexCheckDefault">
+                1 Hari Terakhir
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
+            <label class="form-check-label" for="flexCheckChecked">
+                3 Hari Terakhir
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
+            <label class="form-check-label" for="flexCheckChecked">
+                14 Hari Terakhir
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
+            <label class="form-check-label" for="flexCheckChecked">
+                30 Hari Terakhir
+            </label>
+        </div>
+    </div>
+</div>
+
+{% endblock content-jobs-filterDate%}
+
+
+{% block script-ajax%}
+<script>
+    $(document).ready(function() {
+        $.ajax({
+            url: "/home/jobs-search/?",
+            method: 'POST',
+            data: {
+                'keyword': '',
+                'keywordTitle': '',
+                'keywordLocation': '',
+            },
+            success: function(data) {
+                data = JSON.parse(data);
+                // generate card dari filter data
+            }
+        })
+
+        //kalau 3 hari dkk dicentang, ajax lagi
+
+    });
+</script>
+{% endblock script-ajax%}
