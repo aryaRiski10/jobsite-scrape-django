@@ -1,0 +1,71 @@
+<div class="pagination justify-content-center">
+    <div class="row">
+        <div class="col-6">
+            <nav class="pagination-nav" aria-label="pagination-nav">
+                {% if jobs.has_other_pages %}
+                    <ul class="pagination">
+                        <li class="page-item">
+                            {% if jobs.has_previous %}
+                                <a class="page-link" data-page-number="{{ jobs.previous_page_number }}" href="?page={{ jobs.previous_page_number }}&keywordTitle={{ keywordTitle }}&keywordLocation={{ keywordLocation }}" title="">Previous</a>
+                            {% else %}
+                                <span class="page-link disabled">Previous</span>
+                            {% endif %}
+                        </li>
+                        <li class="page-item d-flex">
+                            {% for i in jobs.paginator.page_range %}
+                                {% if jobs.number == i %}
+                                    <span class="page-link disabled">{{i}}</span>
+                                {% else %}
+                                    <a class="page-link" data-page-number="{{ i }}" href="?page={{ i }}&keywordTitle={{ keywordTitle }}&keywordLocation={{ keywordLocation }}">{{i}}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </li>          
+                        <li class="page-item">
+                            {% if jobs.has_next %}
+                                <a class="page-link" data-page-number="{{ jobs.next_page_number }}" href="?page={{ jobs.next_page_number }}&keywordTitle={{ keywordTitle }}&keywordLocation={{ keywordLocation }}" title="#">Next</a>
+                            {% else %}
+                                <span class="page-link disabled">Next</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+</div>
+
+{% comment %} <div id="pagination" class="pagination justify-content-center">
+    <div class="row">
+        <div class="col-6">
+            <nav class="pagination-nav" aria-label="pagination-nav">
+                {% if jobs.has_other_pages %}
+                    <ul class="pagination">
+                        <li class="page-item">
+                            {% if jobs.has_previous %}
+                                <a class="page-link" id="previous_page" href="" title="">Previous</a>
+                            {% else %}
+                                <span class="page-link disabled">Previous</span>
+                            {% endif %}
+                        </li>
+                        <li class="page-item d-flex">
+                            {% for i in jobs.paginator.page_range %}
+                                {% if jobs.number == i %}
+                                    <a class="page-link" id="number_page" href="#!"></a>
+                                {% else %}
+                                    <a class="page-link"  id="number_next_page" href=""></a>
+                                {% endif %}
+                            {% endfor %}
+                        </li>          
+                        <li class="page-item">
+                            {% if jobs.has_next %}
+                                <a class="page-link"  id="next_page" href="" title="#">Next</a>
+                            {% else %}
+                                <span class="page-link disabled">Next</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+</div> {% endcomment %}

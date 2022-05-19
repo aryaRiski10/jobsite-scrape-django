@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{keyword}} - jobs</title>
+    <title>{{keywordTitle}} {{keywordLocation}} - jobs</title>
 
     {% include "snippets/style.html" %}
 
@@ -21,8 +21,8 @@
                     {% if keyword or keywordTitle or keywordLocation %}
                         <div class="row">
                             <div class="col-3">
-                                {% block content-jobs-filterDate%}
-                                {% endblock content-jobs-filterDate%}
+                                {% block content-jobs-filter%}
+                                {% endblock content-jobs-filter%}
                             </div>
                             <div class="col-9">
                                 {% if keywordTitle or keywordLocation%}
@@ -33,6 +33,8 @@
                                 {% endblock content-jobs%}
                             </div>
                         </div>
+                        {% block content-jobs-pagination%}
+                        {% endblock content-jobs-pagination%}
                     {% else %}
                         <h1>The job you were looking for was not found...</h1>
                     {% endif %}

@@ -3,13 +3,23 @@
 {% load template_cut_re %}
 
 {% block content-jobs-result2 %}
-<h4 class="job-header mt-4">{{jobs_count}} Jobs Searching For {{keywordTitle|title}} {{keywordLocation|title}}</h4>
+<input type="hidden" name="page" id="page" value="{{ request.GET.page }}">
+
+<h4 class="job-header mt-4"><span id="job_count">0</span> Jobs for {{keywordTitle|title}} {{keywordLocation|title}}</h4>
 <br>
 {% endblock content-jobs-result2 %}
 
 {% block content-jobs%}
-
 <div class="row" id="job_list">
+</div>
+
+<div class="col-12 text-center d-none" id="spinner">
+    <div>
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <span>Please wait...</span>
 </div>
 
 <div id="template" class="d-none">
@@ -44,13 +54,14 @@
                                 <small class="text-muted datetime-posted" id="job_datetime_posted2">Posted</small>
                             </p>
                             <div class="apply-job d-inline-block">
+                                <a href="#" id="job_detail" data-bs-toggle="modal" class="btn btn-success">Detail</a>
                                 <a href="#" id="job_link1" class="btn btn-primary" target="_blank">Apply</a>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- Modal -->
-                <div class="modal fade" id="detailModel-{{ forloop.counter }}" tabindex="-1" aria-labelledby="detailModel" aria-hidden="true">
+                <div class="modal fade" id="detailModel" tabindex="-1" aria-labelledby="detailModel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-scrollable">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -91,95 +102,144 @@
 </div>
 {% endblock content-jobs%}
 
-{% block content-jobs-filterDate%}
+{% block content-jobs-pagination%}
+<div id="pagination">
+    
+</div>
+{% endblock content-jobs-pagination%}
+
+{% block content-jobs-filter%}
 <div class="date date-filter input-group">
-    <form action="#" method="get">
+    <div class="filter-category">
         <h5><i class="bi bi-calendar me-2"></i>Date Filter </h5>
-        <div class="input-group mb-3">
-            <span class="input-group-text" id="inputGroup-sizing-lg">From</span><input class="form-control" type="date" name="dateFrom">
-        </div>
-        <div class="input-group mb-3">
-            <span class="input-group-text" id="inputGroup-sizing-lg">To</span><input class="form-control" type="date" name="dateTo">
-        </div>
-        <button type="submit" class="btn btn-primary btn-dateFilter">Filter</button>
-    </form>
-    <div class="filter-lastDay">
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-            <label class="form-check-label" for="flexCheckDefault">
-                1 Hari Terakhir
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
-            <label class="form-check-label" for="flexCheckChecked">
-                3 Hari Terakhir
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
-            <label class="form-check-label" for="flexCheckChecked">
-                14 Hari Terakhir
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
-            <label class="form-check-label" for="flexCheckChecked">
-                30 Hari Terakhir
-            </label>
+        <div class="filter-lastDay">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check_hari_1">
+                <label class="form-check-label" for="check_hari_1">
+                    1 Hari Terakhir
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check_hari_3">
+                <label class="form-check-label" for="check_hari_3">
+                    3 Hari Terakhir
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check_hari_14">
+                <label class="form-check-label" for="check_hari_14">
+                    14 Hari Terakhir
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check_hari_30">
+                <label class="form-check-label" for="check_hari_30">
+                    30 Hari Terakhir
+                </label>
+            </div>
         </div>
     </div>
+    <div class="filter-category mt-4">
+        <h5><i class="bi bi-tags me-2"></i>Category Filter</h5>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="categories" id="cat_all" checked>
+            <label class="form-check-label" for="cat_all">All</label>
+        </div>
+        {% for lname,name in categories %}
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="categories" id="cat_{{lname}}">
+            <label class="form-check-label" for="cat_{{lname}}">{{name}}</label>
+        </div>
+        {% endfor %}
+    </div>
 </div>
-
-{% endblock content-jobs-filterDate%}
+{% endblock content-jobs-filter%}
 
 {% block script-ajax%}
 <script>
     $(document).ready(function() {
-        $.ajax({
-            url: "/home/jobs-search-api/",
-            method: 'POST',
-            data: {
-                'keywordTitle': $('#keywordTitle').val(),
-                'keywordLocation': $('#keywordLocation').val(),
-            },
-            success: function(datas) {
-                for (i = 0; i < datas.length; i++) {
-                    data = datas[i];
+        var timer = null;
 
-                    t = $('#template').clone();
-                    t.attr('id', 'job-' + i);
-                    t.removeClass('d-none');
+        refresh();
 
-                    t.find('#job_title1').text(data.title);
-                    t.find('#job_title2').text(data.title);
-                    t.find('#job_image1').attr('src', data.image);
-                    t.find('#job_image2').attr('src', data.image);
-                    t.find('#job_company1').text(data.company);
-                    t.find('#job_company2').text(data.company);
-                    t.find('#job_location1').text(data.location);
-                    t.find('#job_location2').text(data.location);
-                    t.find('#job_requirement1').text(data.requirement);
-                    t.find('#job_link1').attr('href', data.link);
-                    t.find('#job_link2').attr('href', data.link);
-                    t.find('#job_datetime_posted1').text(data.datetime_posted);
-                    t.find('#job_datetime_posted2').text(data.datetime_posted);
-                    t.find('#job_datetime_posted3').text('Posted ' + data.datetime_posted);
+        $('#keywordTitle, #keywordLocation').keydown(setTimer);
+        $('#check_hari_1, #check_hari_3, #check_hari_14, #check_hari_30').change(setTimer);
+        $('#cat_all, #cat_jobstreet, #cat_kalibrr, #cat_glints').change(setTimer);
+        $(document).on('click', 'a.page-link', function(evt) {
+            evt.preventDefault();
+            $('#page').val($(this).data('page-number'));
+            history.pushState({}, null, $(this).attr('href'));
+            refresh();
+        });
+        
+        
+        function setTimer() {
+            clearTimeout(timer);
+            timer = setTimeout(refresh(), 2000);
+        }
+        
+        function refresh() {
+            s = $('#spinner').clone();
+            s.removeClass('d-none');
+            s.appendTo('#job_list');
 
-                    t.appendTo('#job_list');
-                }                
-                // generate card dari filter data
-            }
-        })
+            $.ajax({
+                url: "/home/jobs-search-api/",
+                method: 'POST',
+                data: {
+                    'page':            $('#page').val(),
+                    'keywordTitle'   : $('#keywordTitle').val(),
+                    'keywordLocation': $('#keywordLocation').val(),
+                    'check_hari_1':    $('#check_hari_1').is(':checked'),
+                    'check_hari_3':    $('#check_hari_3').is(':checked'),
+                    'check_hari_14':   $('#check_hari_14').is(':checked'),
+                    'check_hari_30':   $('#check_hari_30').is(':checked'),
+                    'cat_jobstreet':   $('#cat_jobstreet').is(':checked'),
+                    'cat_kalibrr':     $('#cat_kalibrr').is(':checked'),
+                    'cat_glints':      $('#cat_glints').is(':checked'),
+                },
+                success: function(result) {
+                    $('#job_list').empty();
+                    $('#job_count').text(result.total);
+                    $('#pagination').html(result.paginator);
+
+                    for (i = 0; i < result.data.length; i++) {
+                        data = result.data[i];
+
+                        t = $('#template').clone();
+                        t.attr('id', 'job-' + i);
+                        t.removeClass('d-none');
+                        
+                        t.find('#job_title1').text(data.title);
+                        t.find('#job_title2').text(data.title);
+                        t.find('#job_image1').attr('src', data.image);
+                        t.find('#job_image2').attr('src', data.image);
+                        t.find('#job_company1').text(data.company);
+                        t.find('#job_company2').text(data.company);
+                        t.find('#job_location1').text(data.location);
+                        t.find('#job_location2').text(data.location);
+                        t.find('#job_requirement1').text(data.requirement);
+                        t.find('#job_requirement2').text(data.requirement);
+                        t.find('#job_link1').attr('href', data.link);
+                        t.find('#job_link2').attr('href', data.link);
+                        t.find('#job_datetime_posted1').text(data.datetime_posted);
+                        t.find('#job_datetime_posted2').text(data.datetime_posted);
+                        t.find('#job_datetime_posted3').text('Posted ' + data.datetime_posted);
+                        t.find('#detailModel').attr('id', data.detailModelId);
+                        t.find('#job_detail').attr('data-bs-target', '#' + data.detailModelId);
+
+                        t.appendTo('#job_list');
+                    }
+
+                    window.scrollTo(0, 0);
+                }
+            })
+        }
+
+      
 
         //kalau 3 hari dkk dicentang, ajax lagi
 
     });
 </script>
 {% endblock script-ajax%}
-
-{% comment %} {% block script-js%}
-<script type="text/javascript">
-
-</script>
-{% endblock script-js%} {% endcomment %}
