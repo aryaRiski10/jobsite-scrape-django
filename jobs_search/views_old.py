@@ -4,9 +4,9 @@ from django.shortcuts import render
 from django.views.generic import ListView
 from .models import Jobs
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchHeadline, SearchRank
+from django.contrib.postgres.search import SearchVector, SearchQuery
 from django.utils import timezone
-from django.db.models import Q, CharField
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
@@ -110,44 +110,6 @@ def search_jobs(request):
     return render(request, template_name, context)
 
 
-# -------------------------------------------------
-def normalize_query(query_string):
-
-    '''
-    Splits the query string in invidual keywords, getting rid of unecessary spaces and grouping quoted words together.
-    Example:
-    >>> normalize_query('  some random  words "with   quotes  " and   spaces')
-        ['some', 'random', 'words', 'with quotes', 'and', 'spaces']
-    '''
-    findterms=re.compile(r'"([^"]+)"|(\S+)').findall
-    normspace=re.compile(r'\s{2,}').sub
-    
-    return [normspace(' ',(t[0] or t[1]).strip()) for t in findterms(query_string)]
-
-def get_query(query_string, search_fields):
-
-    '''
-    Returns a query, that is a combination of Q objects. 
-    That combination aims to search keywords within a model by testing the given search fields.
-    '''
-
-    query = None # Query to search for every search term
-    terms = normalize_query(query_string)
-
-    for term in terms:
-        or_query = None # Query to search for a given term in each field
-        for field_name in search_fields:
-            q = Q(**{"%s__regex" % field_name: r'(?i).*'+term})
-            if or_query is None:
-                or_query = q
-            else:
-                or_query = or_query | q
-        if query is None:
-            query = or_query
-        else:
-            query = query & or_query
-            
-    return query
 # ----------------------api------------------------
 jobs_list = ''
 jobs_count = ''
@@ -171,55 +133,60 @@ def jobs_api(request):
     global jobs_count
     
     now         = datetime.date.today()
-    yesterday   = now - datetime.timedelta(days=2)
+    yesterday   = now - datetime.timedelta(days=1)
     last_3_day  = now - datetime.timedelta(days=4)
     last_14_day = now - datetime.timedelta(days=14)
     last_30_day = now - datetime.timedelta(days=30)
 
     # Searching queryset for jobs
-    # re_pattern = r"(?i).*"
-    re_pattern = r"\y{}.*\y"
+    re_pattern_matching = r"(?i).*"
+    # re_pattern_matching = r"\y{}\y"
     
-    word_l = re.sub(r"([-]|[,])",r" ", keywordLocation)
-    word_l = re.sub(r"\s+",r" ", word_l)
-    keyword_l = re.split(r"\s", word_l)
-    query_l = '|'.join(keyword_l)
+    word = re.sub(r"([-])",r" ", keywordTitle)
+    keyword_s = re.split(r"\s", word)
+    # length = len(keyword_s)
+    # out = []
+    # for start in range(length):
+    #     for end in range (start+1, length+1):
+    #         out.append(' '.join(keyword_s[start:end]))
+    #         out.append(keywordTitle)
 
-    '''
-        filter search dapat dilakukan dengan 3 cara yang berbeda:
-        Search 1 (Full text search + regex pattern (optional))
-        -> Full text search merupakan fitur yang sudah disediakan oleh django untuk mempermudah searching pada keyword 
-        
-        jobs_list = Jobs.objects.annotate(search=SearchVector("title","company")).filter(search=r'(?i).*'+keywordTitle)
-        
-        Search 2 (regex search all fields)
-        -> Regex search untuk all field, jika hanya ingin memfilter beberapa field tertentu atau semua
-        
-        entry_q = get_query(keywordTitle, ['title', 'company'])
-        jobs_list = Jobs.objects.filter(entry_q)
-        
-        Search 3 (regex search 1 field)
-        -> Regex search untuk 1 field, jika hanya ingin memfilter 1 field tertentu, atau jika ingin memfilter beberapa fields bisa menambah 
-        Q untuk memfilter field yang ingin dicari. contoh: Q(field1__regex=q)|Q(field2__regex=q)...
-        
-        jobs_list = Jobs.objects.filter(title__regex=r'(?i).*'+keywordTitle)
+    # perms = [' '.join(p) for p in permutations(keyword_s)]
+    # if len(keyword_s) > 1:
+    #     perms = [' '.join(p) for p in permutations(keyword_s,1)]
+    #     query = keywordTitle+'|'+'|'.join(perms)
+    # else:
+    #     perms = keywordTitle
+    #     query = perms
+    
+    query = '|'.join(keyword_s)
 
-    '''
+    print(query)
+
+    # term_keywords = keywordTitle.split(' ')
     if keywordTitle and keywordLocation:
-        jobs_list = Jobs.objects.annotate(search=SearchVector("title","company")).filter(search=r'(?i).*'+keywordTitle, location__iregex=re_pattern.format(query_l))  
+        # jobs_list = Jobs.objects.filter(Q(title__iregex=re_pattern_matching.format(query)) & Q(
+        #     location__iregex=re_pattern_matching.format(keywordLocation)))
+        # jobs_list = Jobs.objects.filter(Q(title__iregex=re_pattern_matching+keywordTitle) & Q(
+        #     location__iregex=re_pattern_matching+keywordLocation))
+        jobs_list = Jobs.objects.annotate(search=SearchVector("title","company")).filter(Q(search=(r"(?i).*"+keywordTitle))&Q(location__iregex=(r"(?i).*"+keywordLocation)))
+        
         jobs_count = jobs_list.count()
     elif keywordTitle:
-        entry_q = get_query(keywordTitle, ['title', 'company'])
-        jobs_list = Jobs.objects.filter(entry_q)
+        # jobs_list = Jobs.objects.filter((Q(title__iregex=re_pattern_matching+keywordTitle)|Q(company__iregex=re_pattern_matching+keywordTitle)))
+        # jobs_list = Jobs.objects.filter(Q(title__iregex=re_pattern_matching.format(query)))
+        # jobs_list = Jobs.objects.annotate(search=SearchVector("title","company")).filter(search__iregex=(r"(?i).*"+keywordTitle))
+        jobs_list = Jobs.objects.annotate(searchRegex=SearchVector("title","company")).filter(searchRegex=SearchQuery((r"(?i).*"+query)))
+
         jobs_count = jobs_list.count()
     elif keywordLocation:
-        jobs_list = Jobs.objects.filter(location__iregex=re_pattern.format(query_l))
+        jobs_list = Jobs.objects.filter(Q(location__iregex=re_pattern_matching+keywordLocation))
         jobs_count = jobs_list.count()
     else:
         jobs_list = Jobs.objects.all()
         jobs_count = jobs_list.count()
     
-    jobs_list = jobs_list.order_by('-title')
+    jobs_list = jobs_list.order_by('-datetime_posted')
     # ----------------------------------------------------------------------
     
     data = []
@@ -252,14 +219,14 @@ def jobs_api(request):
         # -------------------------------------------------------------------------
         
         # Replace the string with re.sub (regex pattern)
+        # exclude = ['MySQL','PostgreSQL','NodeJs','TypeScript','ReactJS','JavaScript','CSS','HTML','API','iOS']
         # [^MySQL|PostgreSQL|NodeJs|TypeScript|ReactJS|JavaScript|CSS|HTML|API|iOS]
         requirement = re.sub(r"([)])([A-Z])",r"\1. \n • \2", data_list['requirement'])
-        requirement = re.sub(r"([a-z])([A-Z])",r"\1, \2", requirement)
+        # requirement = re.sub(r"([a-z])([A-Z])",r"\1, \2", requirement)
         requirement = re.sub(r"([a-z]|[)])([0-9])",r"\1\n\2", requirement)
         # requirement = re.sub(r"(\w+?[a-z])([A-Z])",r"\1\n\2", requirement)
         requirement = re.sub(r"(\w+)([-]\s)",r"\1, ", requirement)
         requirement = re.sub(r"([;][-])",r", ", requirement)
-        requirement = re.sub(r"(\s{2,})",r" ", requirement)
         
         requirement = re.sub(r"(react.js)",r"react js", requirement)
         requirement = re.sub(r"(MySQLTerbiasa)",r"MySQL. Terbiasa", requirement)
@@ -270,7 +237,6 @@ def jobs_api(request):
         requirement = re.sub(r"(Technologyor)",r"Technology or", requirement)
         requirement = re.sub(r"(subjectProficiency)",r"subject. Proficiency", requirement)
         requirement = re.sub(r"([0-9])(Guru)",r"\1, \2 ", requirement)
-        requirement = re.sub(r"(APIMampu)",r"API, Mampu", requirement)
         
 
         # -------------------------------------------------------------------------
@@ -280,7 +246,7 @@ def jobs_api(request):
         # -------------------------------------------------------------------------
         
         data_row = {
-            'title'           : data_list['title'].title(),
+            'title'           : data_list['title'],
             'image'           : data_list['image'],
             'company'         : data_list['company'],
             'location'        : data_list['location'],

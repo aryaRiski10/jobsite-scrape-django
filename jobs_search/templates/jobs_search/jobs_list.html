@@ -11,6 +11,7 @@
 
 {% block content-jobs%}
 <div class="row" id="job_list">
+    
 </div>
 
 <div class="col-12 text-center d-none" id="spinner">
@@ -47,7 +48,7 @@
                         </div>
                         <div class="requirement-info">
                             <h6 class="card-text mb-1 mt-3">Details :</h6>
-                            <p class="card-text requirements-job" style="word-wrap:break-word;" id="job_requirement1">... <a href="" data-bs-toggle="modal" data-bs-target="#detailModel-1">more</a> </p>
+                            <p class="card-text requirements-job" id="job_requirement1"></p>
                         </div>
                         <div class="card-footer mt-3">
                             <p class="card-text d-inline-block job-datetime-posted">
@@ -61,37 +62,40 @@
                     </div>
                 </div>
                 <!-- Modal -->
-                <div class="modal fade" id="detailModel" tabindex="-1" aria-labelledby="detailModel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-scrollable">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h3 class="modal-title" id="exampleModalTitle" id="job_title2"></h3>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="img-company img-company-modal">
-                                    <img src="#" id="job_image2" class="img-fluid company-image" alt="...">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="modal fade" id="detailModel" tabindex="-1" aria-labelledby="detailModel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-scrollable">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 class="modal-title" id="job_title2"></h3>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="img-company img-company-modal">
+                                            <img src="#" id="job_image2" class="img-fluid company-image" alt="...">
+                                        </div>
+                                        <div class="company-name-modal text-center mt-3">
+                                            <span class="company-name" id="job_company2"></span>
+                                        </div>
+                                        <div class="location-name-modal text-center mt-2">
+                                            <span class="location-name text-muted" id="job_location2"></span>
+                                        </div>
+                                        <div class="requirement-info-modal mt-4">
+                                            <h5 class="requirement-info text-decoration-underline">Details</h5>
+                                            <span class="requirement-job" id="job_requirement2"></span>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer mt-3">
+                                        <p class="card-text d-inline-block job-datetime-posted">
+                                            <small class="text-muted datetime-posted" id="job_datetime_posted3">Posted</small>
+                                        </p>
+                                        <div class="apply-job d-inline-block">
+                                            <a href="#" id="job_link2" class="btn btn-primary" target="_blank">Apply</a>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="company-name-modal text-center mt-3">
-                                    <span class="company-name" id="job_company2"></span>
-                                </div>
-                                <div class="location-name-modal text-center mt-2">
-                                    <span class="location-name text-muted" id="job_location2"></span>
-                                </div>
-                                <div class="requirement-info-modal mt-4">
-                                    <h5 class="requirement-info text-decoration-underline">Details</h5>
-                                    <span class="requirement-info" id="job_requirement2"></span>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <p class="card-text d-inline-block job-datetime-posted-modal">
-                                    <small class="text-muted datetime-posted" id="job_datetime_posted3">Posted
-                                    </small>
-                                </p>
-                                <div class="apply-job d-inline-block">
-                                    <a href="#" id="job_link2" class="btn btn-success" target="_blank">Apply Now</a>
-                                </div>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>
@@ -109,9 +113,9 @@
 {% endblock content-jobs-pagination%}
 
 {% block content-jobs-filter%}
-<div class="date date-filter input-group">
+<div class="date date-filter date-filter-d input-group ">
     <div class="filter-category">
-        <h5><i class="bi bi-calendar me-2"></i>Date Filter </h5>
+        <h5><i class="bi bi-calendar me-2"></i>Date Filter</h5>
         <div class="filter-lastDay">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="check_hari_1">
@@ -140,9 +144,9 @@
         </div>
     </div>
     <div class="filter-category mt-4">
-        <h5><i class="bi bi-tags me-2"></i>Category Filter</h5>
+        <h5><i class="bi bi-tags me-2"></i>Jobsite Filter</h5>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="categories" id="cat_all" checked>
+            <input class="form-check-input" type="radio" name="categories" id="cat_all" checked="checked">
             <label class="form-check-label" for="cat_all">All</label>
         </div>
         {% for lname,name in categories %}
@@ -153,6 +157,65 @@
         {% endfor %}
     </div>
 </div>
+    
+<!-- Dropdown for mobile search -->
+<div class="dropdown dropdown-m">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+      Filter
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+        <div class="date date-filter date-filter-m input-group">
+            <div class="row">
+                <div class="col-6 col-ss-12">
+                    <div class="filter-category">
+                        <h5><i class="bi bi-calendar me-2"></i>Date Filter</h5>
+                        <div class="filter-lastDay">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check_hari_1">
+                                <label class="form-check-label" for="check_hari_1">
+                                    1 Hari Terakhir
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check_hari_3">
+                                <label class="form-check-label" for="check_hari_3">
+                                    3 Hari Terakhir
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check_hari_14">
+                                <label class="form-check-label" for="check_hari_14">
+                                    14 Hari Terakhir
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check_hari_30">
+                                <label class="form-check-label" for="check_hari_30">
+                                    30 Hari Terakhir
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-ss-12">
+                    <div class="filter-category mt-4">
+                        <h5><i class="bi bi-tags me-2"></i>Jobsite Filter</h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="categories" id="cat_all" checked>
+                            <label class="form-check-label" for="cat_all">All</label>
+                        </div>
+                        {% for lname,name in categories %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="categories" id="cat_{{lname}}">
+                            <label class="form-check-label" for="cat_{{lname}}">{{name}}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ul>
+  </div>
 {% endblock content-jobs-filter%}
 
 {% block script-ajax%}

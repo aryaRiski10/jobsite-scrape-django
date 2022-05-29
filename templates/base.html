@@ -20,11 +20,11 @@
                     <hr>
                     {% if keyword or keywordTitle or keywordLocation %}
                         <div class="row">
-                            <div class="col-3">
+                            <div class="col-lg-3 col-12">
                                 {% block content-jobs-filter%}
                                 {% endblock content-jobs-filter%}
                             </div>
-                            <div class="col-9">
+                            <div class="col-lg-9 col-12">
                                 {% if keywordTitle or keywordLocation%}
                                     {% block content-jobs-result2 %}
                                     {% endblock content-jobs-result2%}
