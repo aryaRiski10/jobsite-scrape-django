@@ -2,18 +2,17 @@
 
 {% load template_cut_re %}
 
-{% block content-jobs-result2 %}
+{% block content-jobs-result %}
 <input type="hidden" name="page" id="page" value="{{ request.GET.page }}">
 
-<h4 class="job-header mt-4"><span id="job_count">0</span> Jobs for {{keywordTitle|title}} {{keywordLocation|title}}</h4>
+<h4 class="job-header mt-4"><span id="job_count">0</span> Jobs for {{keyword|title}} {{klocation|title}}</h4>
 <br>
-{% endblock content-jobs-result2 %}
+{% endblock content-jobs-result %}
 
 {% block content-jobs%}
 <div class="row" id="job_list">
     
 </div>
-
 <div class="col-12 text-center d-none" id="spinner">
     <div>
         <div class="spinner-border text-primary" role="status">
@@ -22,6 +21,7 @@
     </div>
     <span>Please wait...</span>
 </div>
+
 
 <div id="template" class="d-none">
     <div class="col-12 card-border">
@@ -113,96 +113,38 @@
 {% endblock content-jobs-pagination%}
 
 {% block content-jobs-filter%}
-<div class="date date-filter date-filter-d input-group ">
-    <div class="filter-category">
-        <h5><i class="bi bi-calendar me-2"></i>Date Filter</h5>
-        <div class="filter-lastDay">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="check_hari_1">
-                <label class="form-check-label" for="check_hari_1">
-                    1 Hari Terakhir
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="check_hari_3">
-                <label class="form-check-label" for="check_hari_3">
-                    3 Hari Terakhir
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="check_hari_14">
-                <label class="form-check-label" for="check_hari_14">
-                    14 Hari Terakhir
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="check_hari_30">
-                <label class="form-check-label" for="check_hari_30">
-                    30 Hari Terakhir
-                </label>
-            </div>
-        </div>
-    </div>
-    <div class="filter-category mt-4">
-        <h5><i class="bi bi-tags me-2"></i>Jobsite Filter</h5>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="categories" id="cat_all" checked="checked">
-            <label class="form-check-label" for="cat_all">All</label>
-        </div>
-        {% for lname,name in categories %}
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="categories" id="cat_{{lname}}">
-            <label class="form-check-label" for="cat_{{lname}}">{{name}}</label>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-    
-<!-- Dropdown for mobile search -->
-<div class="dropdown dropdown-m">
-    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-      Filter
+<div class="dropdown dropdown-end">
+    <button class="btn btn-secondary dropdown-toggle d-lg-none" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-funnel"></i>
     </button>
     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-        <div class="date date-filter date-filter-m input-group">
+        <div class="date date-filter date-filter-d input-group ">
             <div class="row">
-                <div class="col-6 col-ss-12">
+                <div class="col-6 col-ss-12 col-lg-12">
                     <div class="filter-category">
-                        <h5><i class="bi bi-calendar me-2"></i>Date Filter</h5>
+                        <h5><i class="bi bi-calendar me-2"></i>Filter Tanggal</h5>
                         <div class="filter-lastDay">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check_hari_1">
-                                <label class="form-check-label" for="check_hari_1">
-                                    1 Hari Terakhir
+                                <input class="form-check-input" type="radio" id="date_all" name="lastnday" checked="checked">
+                                <label class="form-check-label" for="date_all">
+                                    Semua
                                 </label>
                             </div>
+                            {% for lname,name in last_n_day %}
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check_hari_3">
-                                <label class="form-check-label" for="check_hari_3">
-                                    3 Hari Terakhir
-                                </label>
+                                <input class="form-check-input" type="radio" id="date_{{lname}}" name="lastnday">
+                                <label class="form-check-label" for="date_{{lname}}">{{name}}</label>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check_hari_14">
-                                <label class="form-check-label" for="check_hari_14">
-                                    14 Hari Terakhir
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check_hari_30">
-                                <label class="form-check-label" for="check_hari_30">
-                                    30 Hari Terakhir
-                                </label>
-                            </div>
-                        </div>
+                            {% endfor %}
+                        </div> 
                     </div>
                 </div>
-                <div class="col-6 col-ss-12">
+                <div class="col-6 col-ss-12 col-lg-12">
                     <div class="filter-category mt-4">
-                        <h5><i class="bi bi-tags me-2"></i>Jobsite Filter</h5>
+                        <h5><i class="bi bi-tags me-2"></i>Filter Jobsite </h5>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="categories" id="cat_all" checked>
-                            <label class="form-check-label" for="cat_all">All</label>
+                            <input class="form-check-input" type="radio" name="categories" id="cat_all" checked="checked">
+                            <label class="form-check-label" for="cat_all">Semua</label>
                         </div>
                         {% for lname,name in categories %}
                         <div class="form-check">
@@ -212,10 +154,21 @@
                         {% endfor %}
                     </div>
                 </div>
-            </div>
+                <div class="col-6 col-ss-12 col-lg-12">
+                    <div class="filter-category mt-4">
+                        <h5><i class="bi bi-tags me-2"></i>Urut Berdasarkan </h5>
+                        {% for lname,name in ordering %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="ordering" id="order_{{lname}}">
+                            <label class="form-check-label" for="order_{{lname}}">{{name}}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
         </div>
     </ul>
-  </div>
+</div>
+
 {% endblock content-jobs-filter%}
 
 {% block script-ajax%}
@@ -225,9 +178,10 @@
 
         refresh();
 
-        $('#keywordTitle, #keywordLocation').keydown(setTimer);
-        $('#check_hari_1, #check_hari_3, #check_hari_14, #check_hari_30').change(setTimer);
+        $('#keyword, #klocation').keydown(setTimer);
+        $('#date_all, #date_yesterday, #date_last_3_day, #date_last_14_day, #date_last_30_day').change(setTimer);
         $('#cat_all, #cat_jobstreet, #cat_kalibrr, #cat_glints').change(setTimer);
+        $('#order_relevance, #order_date').change(setTimer);
         $(document).on('click', 'a.page-link', function(evt) {
             evt.preventDefault();
             $('#page').val($(this).data('page-number'));
@@ -238,7 +192,9 @@
         
         function setTimer() {
             clearTimeout(timer);
-            timer = setTimeout(refresh(), 2000);
+            timer = null;
+
+            timer = setTimeout(refresh(), 4000);
         }
         
         function refresh() {
@@ -247,19 +203,21 @@
             s.appendTo('#job_list');
 
             $.ajax({
-                url: "/home/jobs-search-api/",
+                url: "/jobs-search-api/",
                 method: 'POST',
                 data: {
-                    'page':            $('#page').val(),
-                    'keywordTitle'   : $('#keywordTitle').val(),
-                    'keywordLocation': $('#keywordLocation').val(),
-                    'check_hari_1':    $('#check_hari_1').is(':checked'),
-                    'check_hari_3':    $('#check_hari_3').is(':checked'),
-                    'check_hari_14':   $('#check_hari_14').is(':checked'),
-                    'check_hari_30':   $('#check_hari_30').is(':checked'),
-                    'cat_jobstreet':   $('#cat_jobstreet').is(':checked'),
-                    'cat_kalibrr':     $('#cat_kalibrr').is(':checked'),
-                    'cat_glints':      $('#cat_glints').is(':checked'),
+                    'page':               $('#page').val(),
+                    'keyword'   :         $('#keyword').val(),
+                    'klocation':          $('#klocation').val(),
+                    'date_yesterday':     $('#date_yesterday').is(':checked'),
+                    'date_last_3_day':    $('#date_last_3_day').is(':checked'),
+                    'date_last_14_day':   $('#date_last_14_day').is(':checked'),
+                    'date_last_30_day':   $('#date_last_30_day').is(':checked'),
+                    'cat_jobstreet':      $('#cat_jobstreet').is(':checked'),
+                    'cat_kalibrr':        $('#cat_kalibrr').is(':checked'),
+                    'cat_glints':         $('#cat_glints').is(':checked'),
+                    'order_relevance':    $('#order_relevance').is(':checked'),
+                    'order_date':         $('#order_date').is(':checked'),
                 },
                 success: function(result) {
                     $('#job_list').empty();
@@ -298,11 +256,6 @@
                 }
             })
         }
-
-      
-
-        //kalau 3 hari dkk dicentang, ajax lagi
-
     });
 </script>
 {% endblock script-ajax%}

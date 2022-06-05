@@ -109,7 +109,44 @@ def search_jobs(request):
 
     return render(request, template_name, context)
 
+# ----------------------------------------------------------------------------------
+def normalize_query(query_string):
 
+    '''
+    Splits the query string in invidual keywords, getting rid of unecessary spaces and grouping quoted words together.
+    Example:
+    >>> normalize_query('  some random  words "with   quotes  " and   spaces')
+        ['some', 'random', 'words', 'with quotes', 'and', 'spaces']
+    '''
+    findterms=re.compile(r'"([^"]+)"|(\S+)').findall
+    normspace=re.compile(r'\s{2,}').sub
+    
+    return [normspace(' ',(t[0] or t[1]).strip()) for t in findterms(query_string)]
+
+def get_query(query_string, search_fields):
+
+    '''
+    Returns a query, that is a combination of Q objects. 
+    That combination aims to search keywords within a model by testing the given search fields.
+    '''
+
+    query = None # Query to search for every search term
+    terms = normalize_query(query_string)
+
+    for term in terms:
+        or_query = None # Query to search for a given term in each field
+        for field_name in search_fields:
+            q = Q(**{"%s__regex" % field_name: r'(?i).*'+term})
+            if or_query is None:
+                or_query = q
+            else:
+                or_query = or_query | q
+        if query is None:
+            query = or_query
+        else:
+            query = query & or_query
+            
+    return query
 # ----------------------api------------------------
 jobs_list = ''
 jobs_count = ''
@@ -186,6 +223,32 @@ def jobs_api(request):
         jobs_list = Jobs.objects.all()
         jobs_count = jobs_list.count()
     
+    if not keywordTitle and not keywordLocation and not keywordCompany and not keywordReq:
+        jobs_list = Jobs.objects.all()
+        jobs_count = jobs_list.count()
+
+    # if not keywordTitle and not keywordLocation and not keywordCompany and not keywordReq:
+    #     jobs_list = Jobs.objects.all()
+    #     jobs_count = jobs_list.count()
+        
+    # jobs_list = Jobs.objects.all() # default
+    # if keywordTitle:
+    #     jobs_list = jobs_list.filter(title__iregex=re_pattern.format(keywordTitle))
+    #     jobs_count = jobs_list.count()
+    # if keywordLocation:
+    #     jobs_list = jobs_list.filter(location__iregex=re_pattern.format(keywordLocation))
+    #     jobs_count = jobs_list.count()
+    # if keywordCompany:
+    #     jobs_list = jobs_list.filter(company__iregex=re_pattern.format(keywordCompany))
+    #     jobs_count = jobs_list.count()
+    # if keywordReq:
+    #     jobs_list = jobs_list.filter(requirement__iregex=re_pattern.format(keywordReq))
+    #     jobs_count = jobs_list.count()
+    # if keyword:
+    #     entry_q = get_query(keyword, ['title','company','location'])
+    #     jobs_list = Jobs.objects.filter(entry_q) 
+    #     jobs_count = jobs_list.count()
+        
     jobs_list = jobs_list.order_by('-datetime_posted')
     # ----------------------------------------------------------------------
     

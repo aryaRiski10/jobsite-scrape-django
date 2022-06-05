@@ -1,44 +1,107 @@
 <div class="filter-menu mt-3">
     <div class="row visible-filter">
-        <form class="d-flex" method="get" action="{% url 'jobs-search:job_list'%}">
-            <div class="filter search-title col-md-5 col-12">
-                <i class="bi bi-search icon"></i>
-                <input class="form-control input-filter" type="text" placeholder="Search Job" aria-label="Search" id="keywordTitle" name="keywordTitle" value="{{ keywordTitle }}">
-            </div>             
-            <div class="filter search-location col-md-5 col-12">
+      <div class="container mt-3">
+        <div class="row">
+            <form class="d-flex" method="get" action="{% url 'jobs-search:job_list'%}">
+              <div class="filter search-title col-5">
+                  <i class="bi bi-search icon"></i>
+                  <input class="form-control input-filter" type="text" placeholder="Search Keyword" aria-label="Search" id="keyword" name="keyword" value="{{ keyword }}">
+              </div>            
+              <div class="filter search-location col-5">
                 <i class="bi bi-geo-alt icon"></i>
-                <input class="form-control input-filter" type="text" placeholder="Search Location (example location1, location2, ...)" aria-label="Search" id="keywordLocation" name="keywordLocation" value="{{ keywordLocation }}">
-            </div>
-            <div class="col-2">
-                <button class="btn btn-primary form-control" type="submit">Search</button>
-            </div>
-        </form>
+                <input class="form-control input-filter" type="text" placeholder="Search Location" aria-label="Search" id="klocation" name="klocation" value="{{ klocation }}">
+              </div> 
+              <div class="btn-search col-2">
+                  <button class="btn btn-primary form-control search-h-3em" type="submit" value="">Search</button>
+              </div>
+            </form>
+        </div>
+      </div>
     </div>
-
     <!-- Dropdown for mobile search -->
     <div class="row invisible-filter">
         <div class="col-12">
             <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle w-100 " type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                  Search 
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                  <form class="#" method="get" action="{% url 'jobs-search:job_list'%}">
-                    <li>     
-                      <i class="bi bi-search icon"></i>                               
-                      <input class="form-control input-filter" type="search" placeholder="Search Job" aria-label="Search" name="keywordTitle" value="{{ keywordTitle }}">
-                    </li>
-                    <li>
-                      <i class="bi bi-geo-alt icon"></i>
-                      <input class="form-control input-filter" type="search" placeholder="Search Location" aria-label="Search" name="keywordLocation" value="{{ keywordLocation }}">
-                    </li>
-                    <li>
-                      <button class="btn btn-primary form-control search-filter" type="submit">Search</button>
-                    </li>
-                  </form>
-                </ul>
-              </div>
+              <button class="btn btn-primary dropdown-toggle w-100 " type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                Search 
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                <form class="#" method="get" action="{% url 'jobs-search:job_list'%}">
+                  <li>     
+                    <i class="bi bi-search icon"></i>                               
+                    <input class="form-control input-filter" type="search" placeholder="Search Job" aria-label="Search" id="keyword" name="keyword" value="{{ keyword }}">
+                  </li>
+                  <li>
+                    <i class="bi bi-geo-alt icon"></i>
+                    <input class="form-control input-filter" type="search" placeholder="Search Location" aria-label="Search" id="klocation" name="klocation" value="{{ klocation }}">
+                  </li>
+                  <li>
+                    <button class="btn btn-primary form-control search-filter" type="submit">Search</button>
+                  </li>
+                </form>
+              </ul>
+            </div>
         </div>
     </div>
     {% comment %} ------------ {% endcomment %}
 </div>
+
+{% comment %} <form class="d-flex" method="get" action="{% url 'jobs-search:job_list'%}">
+  <div class="filter search-title col-md-5 col-12">
+      <i class="bi bi-search icon"></i>
+      <input class="form-control input-filter" type="text" placeholder="Search Job" aria-label="Search" id="keywordTitle" name="keywordTitle" value="{{ keywordTitle }}">
+  </div>   
+  <div class="filter search-company mt-md-2 col-md-6 col-lg-4 col-12">
+    <i class="bi bi-building icon"></i>
+    <input class="form-control input-filter" type="text" placeholder="Company" aria-label="Search"  id="keywordCompany" name="keywordCompany" value="{{ keywordCompany }}">
+  </div>          
+  <div class="filter search-location col-md-5 col-12">
+      <i class="bi bi-geo-alt icon"></i>
+      <input class="form-control input-filter" type="text" placeholder="Location" aria-label="Search" id="keywordLocation" name="keywordLocation" value="{{ keywordLocation }}">
+  </div>
+  <div class="filter search-req mt-md-2 col-md-6 col-lg-6 col-12">
+    <i class="bi bi-geo-alt icon"></i>
+    <input class="form-control input-filter" type="text" placeholder="Others" aria-label="Search" id="keywordReq" name="keywordReq" value="{{ keywordReq }}">
+  </div>
+  <div class="col-2">
+      <button class="btn btn-primary form-control" type="submit">Search</button>
+  </div>
+</form> {% endcomment %}
+
+{% comment %} <div class="container mt-3">
+  <div class="row advanced-search">
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+          Advanced Search
+        </button>
+        <ul class="dropdown-menu w-50em" aria-labelledby="dropdownMenuButton1">
+          <div class="row">
+                <form class="#" method="get" action="{% url 'jobs-search:job_list'%}">
+                  <div class="row">
+                    <div class="filter search-title col-md-6 col-lg-4 col-12">
+                      <i class="bi bi-search icon"></i>
+                      <input class="form-control input-filter" type="text" placeholder="Job" aria-label="Search" id="keywordTitle" name="keywordTitle" value="{{ keywordTitle }}">
+                    </div>             
+                    <div class="filter search-company col-md-6 col-lg-4 col-12">
+                      <i class="bi bi-building icon"></i>
+                      <input class="form-control input-filter" type="text" placeholder="Company" aria-label="Search"  id="keywordCompany" name="keywordCompany" value="{{ keywordCompany }}">
+                    </div>
+                    <div class="filter search-location col-md-6 col-lg-4 col-12">
+                      <i class="bi bi-geo-alt icon"></i>
+                      <input class="form-control input-filter" type="text" placeholder="Location" aria-label="Search" id="keywordLocation" name="keywordLocation" value="{{ keywordLocation }}">
+                    </div>
+                    <div class="filter search-req col-md-6 col-lg-6 col-12">
+                      <i class="bi bi-geo-alt icon"></i>
+                      <input class="form-control input-filter" type="text" placeholder="Others" aria-label="Search" id="keywordReq" name="keywordReq" value="{{ keywordReq }}">
+                    </div>
+                    <div class="btn-search btn-search-advanced col-md-6 col-lg-2 col-12 offset-lg-2 align-self-end">
+                      <button class="btn btn-primary form-control" type="submit">Search</button>
+                    </div>
+                  </div>
+              </form>
+          </div>
+        </ul>
+      </div>   
+    </div>
+  </div>
+</div> {% endcomment %}

@@ -53,16 +53,24 @@
     }
     
     .date-filter {
-        margin-top: 85px;
-        padding: 15px;
+        margin-top: 76px;
+        padding: 10px;
         border: 1px solid rgba(0, 0, 0, 0.125);
         border-radius: 0.25rem;
         position: sticky;
         top: 10em;
     }
     
+    .dropdown-menu.w-50em {
+        width: 50em;
+    }
+    
     .dropdown-m {
         display: none;
+    }
+    
+    .advanced-search {
+        padding: 0px 0 0 10px;
     }
     
     .filter-lastDay {
@@ -233,6 +241,20 @@
         position: absolute;
     }
     
+    .search-h-3em {
+        height: 3em !important;
+    }
+    
+    .ordering {
+        position: absolute;
+        right: 2em;
+        top: 3em;
+    }
+    
+    .dropdown-menu-order {
+        display: none !important;
+    }
+    
     @media (min-width: 1024px) {
         .content {
             flex-direction: row;
@@ -254,6 +276,18 @@
         }
     }
     
+    @media (min-width: 991px) {
+        .btn-search-advanced {
+            width: 20% !important;
+            position: absolute;
+            right: 10px;
+        }
+        .dropdown-menu {
+            display: block;
+            border: 0px;
+        }
+    }
+    
     @media (max-width: 991px) {
         .date-filter {
             display: block;
@@ -261,9 +295,12 @@
         .dropdown-m {
             display: block;
         }
-        .date-filter-d {
-            display: none;
+        .dropdown-end {
+            text-align: end;
         }
+        /* .date-filter-d {
+            display: none;
+        } */
         .dropdown-menu {
             width: 100% !important;
             padding: 15px;
@@ -290,6 +327,10 @@
         .visible-filter {
             visibility: hidden;
             display: none;
+        }
+        .invisible-filter {
+            visibility: visible;
+            display: block;
         }
         .dropdown-menu {
             width: 100% !important;

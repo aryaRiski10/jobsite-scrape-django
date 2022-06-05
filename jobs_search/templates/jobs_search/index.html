@@ -21,7 +21,7 @@
       <div class="container mt-5">
         <div class="row">
           <div class="col-xl-7 col-md-10 col-12">
-            <h1 class="text-center title">Search Your Job</h1>
+            <h2 class="text-center title">Temukan Pekerjaan Yang Kamu Inginkan</h2>
           </div>
         </div>
       </div>
@@ -29,18 +29,18 @@
         <div class="row">
           <div class="col-xl-7 col-md-10 col-12">
             <form class="d-flex" method="get" action="{% url 'jobs-search:job_list'%}">
-              <div class="filter search-title col-md-5 col-12">
+              <div class="filter search-title col-md-8 col-12">
                   <i class="bi bi-search icon"></i>
-                  <input class="form-control input-filter" type="text" placeholder="Search Job" aria-label="Search" name="keywordTitle">
+                  <input class="form-control input-filter" type="text" placeholder="Temukan pekerjaan, perusahaan, atau lokasi" aria-label="Search" name="keyword">
               </div>             
-              <div class="filter search-location col-md-5 col-12">
+              <div class="filter search-location col-md-4 col-12">
                   <i class="bi bi-geo-alt icon"></i>
-                  <input class="form-control input-filter" type="text" placeholder="Search Location" aria-label="Search" name="keywordLocation">
+                  <input class="form-control input-filter" type="text" placeholder="Search Location" aria-label="Search" name="klocation">
               </div>
               <div class="row btn-search">
-                  <button class="btn btn-primary form-control" type="submit">Search</button>
+                  <button class="btn btn-primary form-control" type="submit" value="">Search</button>
               </div>
-          </form>
+            </form>
           </div>
         </div>
       </div>
@@ -49,3 +49,41 @@
     {% include "snippets/scripts.html" %}
   </body>
 </html>
+{% comment %} 
+<div class="container mt-3">
+  <div class="row advanced-search">
+    <div class="dropdown">
+      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+        Advanced Search
+      </button>
+      <ul class="dropdown-menu w-50em" aria-labelledby="dropdownMenuButton1">
+        <div class="row">
+              <form class="#" method="get" action="{% url 'jobs-search:job_list'%}">
+                <div class="row">
+                  <div class="filter search-title mt-md-2 col-md-6 col-lg-4 col-12">
+                    <i class="bi bi-search icon"></i>
+                    <input class="form-control input-filter" type="text" placeholder="Job" aria-label="Search" name="keywordTitle">
+                  </div>             
+                  <div class="filter search-company mt-md-2 col-md-6 col-lg-4 col-12">
+                    <i class="bi bi-building icon"></i>
+                    <input class="form-control input-filter" type="text" placeholder="Company" aria-label="Search" name="keywordCompany">
+                  </div>
+                  <div class="filter search-location mt-md-2 col-md-6 col-lg-4 col-12">
+                    <i class="bi bi-geo-alt icon"></i>
+                    <input class="form-control input-filter" type="text" placeholder="Location" aria-label="Search" name="keywordLocation">
+                  </div>
+                  <div class="filter search-req mt-md-2 col-md-6 col-lg-6 col-12">
+                    <i class="bi bi-geo-alt icon"></i>
+                    <input class="form-control input-filter" type="text" placeholder="Others" aria-label="Search" name="keywordReq">
+                  </div>
+                  <div class="btn-search btn-search-advanced mt-md-2 col-md-6 col-lg-2 col-12 offset-lg-2 align-self-end">
+                    <button class="btn btn-primary form-control" type="submit">Search</button>
+                  </div>
+                </div>
+            </form>
+        </div>
+      </ul>
+    </div>
+    
+  </div>
+</div> {% endcomment %}

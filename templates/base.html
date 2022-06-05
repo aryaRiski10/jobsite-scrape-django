@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{keywordTitle}} {{keywordLocation}} - jobs</title>
+    <title>{{keyword}} {{klocation}} - jobs</title>
 
     {% include "snippets/style.html" %}
 
@@ -18,16 +18,16 @@
                 <div class="main-content">
                     {% include "snippets/filter_search.html" %}
                     <hr>
-                    {% if keyword or keywordTitle or keywordLocation %}
+                    {% if keyword or klocation %}
                         <div class="row">
                             <div class="col-lg-3 col-12">
                                 {% block content-jobs-filter%}
                                 {% endblock content-jobs-filter%}
                             </div>
-                            <div class="col-lg-9 col-12">
-                                {% if keywordTitle or keywordLocation%}
-                                    {% block content-jobs-result2 %}
-                                    {% endblock content-jobs-result2%}
+                            <div class="col-lg-9 col-12 position-relative">
+                                {% if keyword or klocation%}
+                                    {% block content-jobs-result %}
+                                    {% endblock content-jobs-result %}
                                 {% endif %}
                                 {% block content-jobs%}
                                 {% endblock content-jobs%}

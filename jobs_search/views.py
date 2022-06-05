@@ -1,12 +1,15 @@
 from array import array
+from functools import reduce
 from multiprocessing import Array
+from multiprocessing.sharedctypes import Value
+import operator
 from django.shortcuts import render
 from django.views.generic import ListView
 from .models import Jobs
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchHeadline, SearchRank
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchHeadline, SearchRank, TrigramDistance
 from django.utils import timezone
-from django.db.models import Q, CharField
+from django.db.models import Q, Case, When, Value, IntegerField
 from django.http import JsonResponse, HttpResponse
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
@@ -14,10 +17,16 @@ from django.forms.models import model_to_dict
 from django.template.defaultfilters import linebreaksbr
 from django.template.loader import render_to_string
 from django.utils import formats
-from itertools import permutations
+from django.db.models.expressions import Window
+from django.db.models.functions import Rank
+
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
+import nltk
+nltk.download('punkt')
 
 import datetime
-import re
+import regex as re
 import json
 
 # Create your views here.
@@ -28,8 +37,8 @@ def index(request):
 
     context = {
         'judul': 'Welcome Jobsearch',
-        'keywordTitle': request.GET.get('keywordTitle'),
-        'keywordLocation': request.GET.get('keywordLocation'),
+        'keyword': request.GET.get('keyword'),
+        'klocation': request.GET.get('klocation'),
     }
     return render(request, template_name, context)
 
@@ -39,10 +48,12 @@ def get_data(request):
     jobs_count = Jobs.objects.count()
 
     page = request.GET.get('page')
-    keywordTitle = request.GET.get('keywordTitle')
-    keywordLocation = request.GET.get('keywordLocation')
-
+    
+    keyword = request.GET.get('keyword')
+    klocation = request.GET.get('klocation')
+    
     now = datetime.date.today()
+    
     yesterday = now - datetime.timedelta(days=1)
     last_3_day = now - datetime.timedelta(days=3)
     last_7_day = now - datetime.timedelta(days=7)
@@ -53,29 +64,20 @@ def get_data(request):
             ['glints','Glints']
     ]
     
+    last_n_day =  [
+            ['yesterday','1 Hari Terakhir'],
+            ['last_3_day','3 Hari Terakhir'],
+            ['last_14_day','14 Hari Terakhir'],
+            ['last_30_day','30 Hari Terakhir']
+    ]
+    
+    ordering = [
+        ['relevance','Relevansi'],
+        ['date','Tanggal']
+    ]
     # Pattern regex ini berfungsi untuk melakukan matching dengan data dalam database
     # Misal data yang ingin dicari adalah Yogyakarta pada field lokasi dengan menginputkan keyword "Yog", maka pattern regex tersebut akan mencari kata "Yog" dengan case-insensitive menyesuaikan data dalam database
     re_pattern_matching = r"(?i).*"
-
-    # if keyword:
-    #     jobs_list = Jobs.objects.annotate(search=SearchVector("title", "location", "requirement")).filter(
-    #         search=SearchQuery(keyword)).order_by('-datetime_posted')
-    #     jobs_count = jobs_list.count()
-    #     # jobs_list = Jobs.objects.annotate(search=SearchVector("title","location")).filter(search=SearchQuery(r"(?i).*"+keyword)).order_by('-datetime_posted')
-    #     # jobs_count = Jobs.objects.annotate(search=SearchVector("title","location")).filter(search=SearchQuery(r"(?i).*"+keyword)).count()
-
-    if keywordTitle and keywordLocation:
-        jobs_list = Jobs.objects.filter(Q(title__iregex=re_pattern_matching+keywordTitle) & Q(
-            location__iregex=re_pattern_matching+keywordLocation)).order_by('-datetime_posted')
-        jobs_count = jobs_list.count()
-    elif keywordTitle:
-        jobs_list = Jobs.objects.filter(
-            Q(title__iregex=re_pattern_matching+keywordTitle)).order_by('-datetime_posted')
-        jobs_count = jobs_list.count()
-    elif keywordLocation:
-        jobs_list = Jobs.objects.filter(
-            Q(location__iregex=re_pattern_matching+keywordLocation)).order_by('-datetime_posted')
-        jobs_count = jobs_list.count()
 
     paginator = Paginator(jobs_list, 16)
     page = request.GET.get('page')
@@ -93,11 +95,12 @@ def get_data(request):
         'jobs': jobs,
         'jobslist': JsonResponse(data, safe=False),
         'page': page,
-        'keywordTitle': keywordTitle,
-        'keywordLocation': keywordLocation,
+        'keyword' : keyword,
+        'klocation': klocation,
         'jobs_count': jobs_count,
-        'last_3_day': last_3_day,
-        'categories' : categories
+        'categories' : categories,
+        'last_n_day' : last_n_day,
+        'ordering' : ordering
 
     }
     return context
@@ -111,60 +114,42 @@ def search_jobs(request):
 
 
 # -------------------------------------------------
-def normalize_query(query_string):
 
-    '''
-    Splits the query string in invidual keywords, getting rid of unecessary spaces and grouping quoted words together.
-    Example:
-    >>> normalize_query('  some random  words "with   quotes  " and   spaces')
-        ['some', 'random', 'words', 'with quotes', 'and', 'spaces']
-    '''
-    findterms=re.compile(r'"([^"]+)"|(\S+)').findall
-    normspace=re.compile(r'\s{2,}').sub
-    
-    return [normspace(' ',(t[0] or t[1]).strip()) for t in findterms(query_string)]
+def token(query_string):
+  tokenize_query = word_tokenize(query_string)
+  return tokenize_query
+  
+def stemming(query_string):
+  porter = PorterStemmer()
 
-def get_query(query_string, search_fields):
+  terms = token(query_string)
+  result = []
+  for term in terms:
+    result.append(porter.stem(term))
+  
+  return result
 
-    '''
-    Returns a query, that is a combination of Q objects. 
-    That combination aims to search keywords within a model by testing the given search fields.
-    '''
-
-    query = None # Query to search for every search term
-    terms = normalize_query(query_string)
-
-    for term in terms:
-        or_query = None # Query to search for a given term in each field
-        for field_name in search_fields:
-            q = Q(**{"%s__regex" % field_name: r'(?i).*'+term})
-            if or_query is None:
-                or_query = q
-            else:
-                or_query = or_query | q
-        if query is None:
-            query = or_query
-        else:
-            query = query & or_query
-            
-    return query
 # ----------------------api------------------------
 jobs_list = ''
 jobs_count = ''
 
 @csrf_exempt
 def jobs_api(request):
-    keywordTitle    = request.POST.get('keywordTitle')
-    keywordLocation = request.POST.get('keywordLocation')
+    
+    keyword = request.POST.get('keyword')
+    klocation = request.POST.get('klocation')
 
-    check_hari_1  = request.POST.get('check_hari_1') == 'true'
-    check_hari_3  = request.POST.get('check_hari_3') == 'true'
-    check_hari_14 = request.POST.get('check_hari_14') == 'true'
-    check_hari_30 = request.POST.get('check_hari_30') == 'true'
+    date_yesterday  = request.POST.get('date_yesterday') == 'true'
+    date_last_3_day  = request.POST.get('date_last_3_day') == 'true'
+    date_last_14_day = request.POST.get('date_last_14_day') == 'true'
+    date_last_30_day = request.POST.get('date_last_30_day') == 'true'
 
     cat_jobstreet = request.POST.get('cat_jobstreet') == 'true'
     cat_kalibrr   = request.POST.get('cat_kalibrr') == 'true'
     cat_glints    = request.POST.get('cat_glints') == 'true'
+    
+    order_relevance  = request.POST.get('order_relevance') == 'true'
+    order_date       = request.POST.get('order_date') == 'true'
 
 
     global jobs_list
@@ -176,15 +161,8 @@ def jobs_api(request):
     last_14_day = now - datetime.timedelta(days=14)
     last_30_day = now - datetime.timedelta(days=30)
 
-    # Searching queryset for jobs
-    # re_pattern = r"(?i).*"
-    re_pattern = r"\y{}.*\y"
     
-    word_l = re.sub(r"([-]|[,])",r" ", keywordLocation)
-    word_l = re.sub(r"\s+",r" ", word_l)
-    keyword_l = re.split(r"\s", word_l)
-    query_l = '|'.join(keyword_l)
-
+    # Searching queryset for jobs    
     '''
         filter search dapat dilakukan dengan 3 cara yang berbeda:
         Search 1 (Full text search + regex pattern (optional))
@@ -205,41 +183,52 @@ def jobs_api(request):
         jobs_list = Jobs.objects.filter(title__regex=r'(?i).*'+keywordTitle)
 
     '''
-    if keywordTitle and keywordLocation:
-        jobs_list = Jobs.objects.annotate(search=SearchVector("title","company")).filter(search=r'(?i).*'+keywordTitle, location__iregex=re_pattern.format(query_l))  
+    jobs_list = Jobs.objects.all() # default
+    if keyword:
+        q=Q()
+        qs = stemming(keyword)
+        for key in qs:
+            q &= Q(title__iregex = r'\b{}.*\b'.format(key))|Q(company__iregex=r'\b{}.*\b'.format(key))
+        jobs_list = jobs_list.filter(q).distinct()
         jobs_count = jobs_list.count()
-    elif keywordTitle:
-        entry_q = get_query(keywordTitle, ['title', 'company'])
-        jobs_list = Jobs.objects.filter(entry_q)
+    if klocation:
+        q=Q()
+        qs = stemming(klocation)
+        qs = '|'.join(qs)
+        jobs_list = jobs_list.filter(location__iregex=r'\b{}.*\b'.format(qs))
         jobs_count = jobs_list.count()
-    elif keywordLocation:
-        jobs_list = Jobs.objects.filter(location__iregex=re_pattern.format(query_l))
-        jobs_count = jobs_list.count()
-    else:
-        jobs_list = Jobs.objects.all()
-        jobs_count = jobs_list.count()
-    
+        
     jobs_list = jobs_list.order_by('-title')
-    # ----------------------------------------------------------------------
     
+    # Filter the jobs data by date
+    if (order_relevance):
+        jobs_list = jobs_list.annotate(rank=Case(When(reduce(operator.or_, (Q(title__iregex=key) for key in qs)),then=Value(1)), 
+                                                 When(reduce(operator.or_, (Q(company__iregex=key) for key in qs)), then=Value(2)),
+                                                 default=Value(99),
+                                                 output_field=IntegerField())).order_by('rank')
+        # jobs_list = jobs_list.order_by('rank').distinct()
+    if (order_date):
+        jobs_list = jobs_list.order_by('-date_posted')
+
+    # ----------------------------------------------------------------------
     data = []
-            
+
     i = 0;
     for dt in jobs_list.iterator():
         data_list = model_to_dict(dt)
 
         # Filter the jobs data by last n days
-        if (check_hari_30 and data_list['datetime_posted'] <= last_30_day):
+        if (date_last_30_day and data_list['date_posted'] <= last_30_day):
             continue
-        if (check_hari_14 and data_list['datetime_posted'] <= last_14_day):
+        if (date_last_14_day and data_list['date_posted'] <= last_14_day):
             continue
-        if (check_hari_3 and data_list['datetime_posted'] <= last_3_day):
+        if (date_last_3_day and data_list['date_posted'] <= last_3_day):
             continue
-        if (check_hari_1 and data_list['datetime_posted'] <= yesterday):
+        if (date_yesterday and data_list['date_posted'] <= yesterday):
             continue
         # -------------------------------------------------------------------------
         
-        # Filter the the jobs data by jobsite
+        # Filter the jobs data by jobsite
         link = data_list['link']
         jobsite = re.sub(r"(.co.id|.com)(.*)", r"", re.sub(r"(https://www.)|(https://)", r"", link)).title()
 
@@ -251,12 +240,13 @@ def jobs_api(request):
             continue
         # -------------------------------------------------------------------------
         
+        
+        # -------------------------------------------------------------------------
         # Replace the string with re.sub (regex pattern)
         # [^MySQL|PostgreSQL|NodeJs|TypeScript|ReactJS|JavaScript|CSS|HTML|API|iOS]
         requirement = re.sub(r"([)])([A-Z])",r"\1. \n • \2", data_list['requirement'])
         requirement = re.sub(r"([a-z])([A-Z])",r"\1, \2", requirement)
         requirement = re.sub(r"([a-z]|[)])([0-9])",r"\1\n\2", requirement)
-        # requirement = re.sub(r"(\w+?[a-z])([A-Z])",r"\1\n\2", requirement)
         requirement = re.sub(r"(\w+)([-]\s)",r"\1, ", requirement)
         requirement = re.sub(r"([;][-])",r", ", requirement)
         requirement = re.sub(r"(\s{2,})",r" ", requirement)
@@ -276,7 +266,7 @@ def jobs_api(request):
         # -------------------------------------------------------------------------
         
         # Format the data jobs posted
-        formatted_date = formats.date_format(data_list['datetime_posted'], "F, d Y")
+        formatted_date = formats.date_format(data_list['date_posted'], "F, d Y")
         # -------------------------------------------------------------------------
         
         data_row = {
@@ -304,8 +294,8 @@ def jobs_api(request):
         jobs = paginator.page(paginator.num_pages)
     
     paginate = render_to_string('jobs_search/paginator.html', {
-        'keywordTitle': keywordTitle,
-        'keywordLocation': keywordLocation,
+        'keyword': keyword,
+        'klocation': klocation,
         'jobs': jobs
     })
     # --------------------------------------------------------------------

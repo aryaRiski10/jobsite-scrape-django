@@ -76,15 +76,20 @@ WSGI_APPLICATION = 'web_information.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'scrapeJobs',
-        'USER': 'postgres',
-        'PASSWORD': 'admin123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'u116665791_db_jobs_scrape',
+        'USER': 'u116665791_admin',
+        'PASSWORD': 'aryaRiski123',
+        'HOST': '31.220.110.101',
+        'PORT': '3306',
     }
 }
-
+ # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        # 'NAME': 'scrapeJobs',
+        # 'USER': 'postgres',
+        # 'PASSWORD': 'admin123',
+        # 'HOST': 'localhost',
+        # 'PORT': '5432',
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
