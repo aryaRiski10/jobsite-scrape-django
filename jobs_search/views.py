@@ -189,23 +189,25 @@ def jobs_api(request):
         qs = stemming(keyword)
         for key in qs:
             q &= Q(title__iregex = r'\b{}.*\b'.format(key))|Q(company__iregex=r'\b{}.*\b'.format(key))
-        jobs_list = jobs_list.filter(q).distinct()
+        # jobs_list = jobs_list.filter(q)
+        
+        qs = '|'.join(qs)
+        jobs_list = jobs_list.filter(Q(title__iregex = r'\b.*{}.*\b'.format(qs))|Q(company__iregex=r'\b.*{}.*\b'.format(qs)))
+        # jobs_list = jobs_list.filter(Q(title__icontains = keyword)|Q(company__icontains=keyword))
         jobs_count = jobs_list.count()
     if klocation:
         q=Q()
         qs = stemming(klocation)
         qs = '|'.join(qs)
-        jobs_list = jobs_list.filter(location__iregex=r'\b{}.*\b'.format(qs))
+        jobs_list = jobs_list.filter(location__iregex=r'\b.*{}.*\b'.format(qs))
         jobs_count = jobs_list.count()
-        
-    jobs_list = jobs_list.order_by('-title')
-    
+            
     # Filter the jobs data by date
     if (order_relevance):
         jobs_list = jobs_list.annotate(rank=Case(When(reduce(operator.or_, (Q(title__iregex=key) for key in qs)),then=Value(1)), 
                                                  When(reduce(operator.or_, (Q(company__iregex=key) for key in qs)), then=Value(2)),
                                                  default=Value(99),
-                                                 output_field=IntegerField())).order_by('rank')
+                                                 output_field=IntegerField())).order_by('-date_posted','rank','title')
         # jobs_list = jobs_list.order_by('rank').distinct()
     if (order_date):
         jobs_list = jobs_list.order_by('-date_posted')
@@ -213,7 +215,7 @@ def jobs_api(request):
     # ----------------------------------------------------------------------
     data = []
 
-    i = 0;
+    i = 0
     for dt in jobs_list.iterator():
         data_list = model_to_dict(dt)
 
